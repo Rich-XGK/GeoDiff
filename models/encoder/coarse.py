@@ -7,7 +7,6 @@ from .schnet import SchNetEncoder, GaussianSmearing
 
 
 class CoarseGrainingEncoder(Module):
-
     def __init__(self, hidden_channels, num_filters, num_interactions, edge_channels, cutoff, smooth):
         super().__init__()
         self.encoder = SchNetEncoder(
@@ -19,7 +18,6 @@ class CoarseGrainingEncoder(Module):
             smooth=smooth,
         )
         self.distexp = GaussianSmearing(stop=cutoff, num_gaussians=edge_channels)
-
 
     def forward(self, pos, node_attr, subgraph_index, batch, return_coarse=False):
         """
@@ -37,11 +35,11 @@ class CoarseGrainingEncoder(Module):
         edge_attr = self.distexp(edge_length)
 
         h = self.encoder(
-            z = cluster_attr,
-            edge_index = edge_index,
-            edge_length = edge_length,
-            edge_attr = edge_attr,
-            embed_node = False,
+            z=cluster_attr,
+            edge_index=edge_index,
+            edge_length=edge_length,
+            edge_attr=edge_attr,
+            embed_node=False,
         )
 
         if return_graph:

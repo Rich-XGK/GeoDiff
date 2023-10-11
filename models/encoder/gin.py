@@ -13,25 +13,22 @@ from ..common import MeanReadout, SumReadout, MultiLayerPerceptron
 
 
 class GINEConv(MessagePassing):
-
-    def __init__(self, nn: Callable, eps: float = 0., train_eps: bool = False,
-                 activation="softplus", **kwargs):
-        super(GINEConv, self).__init__(aggr='add', **kwargs)
+    def __init__(self, nn: Callable, eps: float = 0.0, train_eps: bool = False, activation="softplus", **kwargs):
+        super(GINEConv, self).__init__(aggr="add", **kwargs)
         self.nn = nn
         self.initial_eps = eps
 
         if isinstance(activation, str):
             self.activation = getattr(F, activation)
         else:
-            self.activation = None       
+            self.activation = None
 
         if train_eps:
             self.eps = torch.nn.Parameter(torch.Tensor([eps]))
         else:
-            self.register_buffer('eps', torch.Tensor([eps]))
+            self.register_buffer("eps", torch.Tensor([eps]))
 
-    def forward(self, x: Union[Tensor, OptPairTensor], edge_index: Adj,
-                edge_attr: OptTensor = None, size: Size = None) -> Tensor:
+    def forward(self, x: Union[Tensor, OptPairTensor], edge_index: Adj, edge_attr: OptTensor = None, size: Size = None) -> Tensor:
         """"""
         if isinstance(x, Tensor):
             x: OptPairTensor = (x, x)
@@ -59,12 +56,11 @@ class GINEConv(MessagePassing):
             return x_j + edge_attr
 
     def __repr__(self):
-        return '{}(nn={})'.format(self.__class__.__name__, self.nn)        
+        return "{}(nn={})".format(self.__class__.__name__, self.nn)
 
 
 class GINEncoder(torch.nn.Module):
-
-    def __init__(self, hidden_dim, num_convs=3, activation='relu', short_cut=True, concat_hidden=False):
+    def __init__(self, hidden_dim, num_convs=3, activation="relu", short_cut=True, concat_hidden=False):
         super().__init__()
 
         self.hidden_dim = hidden_dim
@@ -76,14 +72,11 @@ class GINEncoder(torch.nn.Module):
         if isinstance(activation, str):
             self.activation = getattr(F, activation)
         else:
-            self.activation = None 
-        
+            self.activation = None
+
         self.convs = nn.ModuleList()
         for i in range(self.num_convs):
-            self.convs.append(GINEConv(MultiLayerPerceptron(hidden_dim, [hidden_dim, hidden_dim], \
-                                    activation=activation), activation=activation))
-
-    
+            self.convs.append(GINEConv(MultiLayerPerceptron(hidden_dim, [hidden_dim, hidden_dim], activation=activation), activation=activation))
 
     def forward(self, z, edge_index, edge_attr):
         """
@@ -96,16 +89,16 @@ class GINEncoder(torch.nn.Module):
             graph feature
         """
 
-        node_attr = self.node_emb(z)    # (num_node, hidden)
- 
+        node_attr = self.node_emb(z)  # (num_node, hidden)
+
         hiddens = []
-        conv_input = node_attr # (num_node, hidden)
+        conv_input = node_attr  # (num_node, hidden)
 
         for conv_idx, conv in enumerate(self.convs):
             hidden = conv(conv_input, edge_index, edge_attr)
             if conv_idx < len(self.convs) - 1 and self.activation is not None:
                 hidden = self.activation(hidden)
-            assert hidden.shape == conv_input.shape                
+            assert hidden.shape == conv_input.shape
             if self.short_cut and hidden.shape == conv_input.shape:
                 hidden += conv_input
 
