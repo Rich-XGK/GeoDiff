@@ -1,0 +1,17 @@
+{
+    "configurations": [
+        {
+            "name": "Python: QM9_Train",
+            "type": "python",
+            "request": "launch",
+            "module": "train",
+            "justMyCode": true,
+            "env": {
+                "CUDA_VISIBLE_DEVICES": "1"
+            },
+            "args": [
+                "./configs/qm9_default.yml",
+            ]
+        }
+    ]
+}
