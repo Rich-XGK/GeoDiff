@@ -780,6 +780,12 @@ class ConformationDataset(Dataset):
     def __len__(self):
         return len(self.data)
 
+    def get(self, idx: int):
+        return self.__getitem__(idx)
+
+    def len(self):
+        return self.__len__()
+
     def _atom_types(self):
         """All atom types."""
         atom_types = set()
