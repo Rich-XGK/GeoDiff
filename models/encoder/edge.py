@@ -40,8 +40,8 @@ class MLPEdgeEncoder(Module):
     def __init__(self, hidden_dim=100, activation="relu"):
         super().__init__()
         self.hidden_dim = hidden_dim
-        self.bond_emb = Embedding(100, embedding_dim=self.hidden_dim)
-        self.mlp = MultiLayerPerceptron(1, [self.hidden_dim, self.hidden_dim], activation=activation)
+        self.bond_emb = Embedding(100, embedding_dim=self.hidden_dim)   # TODO: Why 100 types of bonds?
+        self.mlp = MultiLayerPerceptron(1, [self.hidden_dim, self.hidden_dim], activation=activation)   # consists of multiple linear layers 
 
     @property
     def out_channels(self):
@@ -64,6 +64,6 @@ def get_edge_encoder(cfg):
     if cfg.edge_encoder == "mlp":
         return MLPEdgeEncoder(cfg.hidden_dim, cfg.mlp_act)
     elif cfg.edge_encoder == "gaussian":
-        return GaussianSmearingEdgeEncoder(config.hidden_dim // 2, cutoff=config.cutoff)
+        return GaussianSmearingEdgeEncoder(cfg.hidden_dim // 2, cutoff=cfg.cutoff)
     else:
         raise NotImplementedError("Unknown edge encoder: %s" % cfg.edge_encoder)

@@ -16,6 +16,7 @@ from utils.transforms import *
 from utils.misc import *
 from utils.common import get_optimizer, get_scheduler
 
+# torch.autograd.set_detect_anomaly = True
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
@@ -55,16 +56,17 @@ if __name__ == "__main__":
     # Datasets and loaders
     logger.info("Loading datasets...")
     transforms = CountNodesPerGraph()
-    train_set = ConformationDataset(config.dataset.train, transform=transforms)
+    # train_set = ConformationDataset(config.dataset.train, transform=transforms)
+    train_set = ConformationDataset(config.dataset.val, transform=transforms)
     val_set = ConformationDataset(config.dataset.val, transform=transforms)
     train_iterator = inf_iterator(DataLoader(train_set, config.train.batch_size, shuffle=True))
     val_loader = DataLoader(val_set, config.train.batch_size, shuffle=False)
 
     # Model
     logger.info("Building model...")
-    model = get_model(config.model).to(args.device)
+    model = get_model(config.model).to(args.device)  # 'type': 'diffusion'; 'network': 'dualenc'
 
-    # Optimizer
+    # Optimizer TODO: what are global and local optimizers?
     optimizer_global = get_optimizer(config.train.optimizer, model.model_global)
     optimizer_local = get_optimizer(config.train.optimizer, model.model_local)
     scheduler_global = get_scheduler(config.train.scheduler, optimizer_global)
@@ -88,19 +90,18 @@ if __name__ == "__main__":
         optimizer_global.zero_grad()
         optimizer_local.zero_grad()
         batch = next(train_iterator).to(args.device)
-        loss, loss_global, loss_local = model.get_loss(
-            atom_type=batch.atom_type,
-            pos=batch.pos,
-            bond_index=batch.edge_index,
-            bond_type=batch.edge_type,
-            batch=batch.batch,
-            num_nodes_per_graph=batch.num_nodes_per_graph,
-            num_graphs=batch.num_graphs,
-            anneal_power=config.train.anneal_power,
+        loss, loss_global, loss_local = model.get_loss(  # DualEncoderEpsNetwork
+            atom_type=batch.atom_type,  # pyg batched atom types (N,) N = sum(num_nodes_per_graph)
+            pos=batch.pos,  # pyg batched positions (N, 3)
+            bond_index=batch.edge_index,  # pyg batched edge indices (2, E) E = sum(num_edges_per_graph)
+            bond_type=batch.edge_type,  # pyg batched edge types (E,)
+            batch=batch.batch,  # pyg batched graph indices (N,) [0, 0, 0, 1, 1, 1, 1, 2, 2, 2, ..., num_graphs-1, num_graphs-1]
+            num_nodes_per_graph=batch.num_nodes_per_graph,  # list of num_nodes_per_graph (num_graphs,)
+            num_graphs=batch.num_graphs,  # number of graphs in batch (scalar)
+            anneal_power=config.train.anneal_power,  # what is anneal power?
             return_unreduced_loss=True,
         )
         loss = loss.mean()
-        loss.backward()
         orig_grad_norm = clip_grad_norm_(model.parameters(), config.train.max_grad_norm)
         optimizer_global.step()
         optimizer_local.step()
