@@ -481,7 +481,7 @@ class DualEncoderEpsNetwork(nn.Module):
             pos = pos_init * sigmas[-1]
             if is_sidechain is not None:
                 pos[~is_sidechain] = pos_gt[~is_sidechain]
-            for i, j in tqdm(zip(reversed(seq), reversed(seq_next)), desc="sample"):
+            for i, j in tqdm(zip(reversed(seq), reversed(seq_next)), desc="sample"):  # T -> T-1 -> ... -> 0
                 t = torch.full(size=(num_graphs,), fill_value=i, dtype=torch.long, device=pos.device)
 
                 edge_inv_global, edge_inv_local, edge_index, edge_type, edge_length, local_edge_mask = self(

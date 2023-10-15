@@ -952,7 +952,7 @@ class PackedConformationDataset(ConformationDataset):
         """
         pack confs with same mol into a single data object
         """
-        self._packed_data = defaultdict(list)
+        self._packed_data = defaultdict(list)  # {'smiles': [data1, data2, ...]}
         if hasattr(self.data, "idx"):
             for i in range(len(self.data)):
                 self._packed_data[self.data[i].idx.item()].append(self.data[i])

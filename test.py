@@ -61,7 +61,7 @@ if __name__ == "__main__":
     transforms = Compose(
         [
             CountNodesPerGraph(),
-            AddHigherOrderEdges(order=config.model.edge_order),  # Offline edge augmentation
+            AddHigherOrderEdges(order=config.model.edge_order),  # Offline edge augmentation    # what does this for?
         ]
     )
     if args.test_set is None:
@@ -98,30 +98,30 @@ if __name__ == "__main__":
 
         data_input = data.clone()
         data_input["pos_ref"] = None
-        batch = repeat_data(data_input, num_samples).to(args.device)
+        batch = repeat_data(data_input, num_samples).to(args.device)  # Batch.from_data_list(datas), data is a list of Data objects.
 
         clip_local = None
         for _ in range(2):  # Maximum number of retry
             try:
-                pos_init = torch.randn(batch.num_nodes, 3).to(args.device)
+                pos_init = torch.randn(batch.num_nodes, 3).to(args.device)  # (N, 3)
                 pos_gen, pos_gen_traj = model.langevin_dynamics_sample(
                     atom_type=batch.atom_type,
-                    pos_init=pos_init,
+                    pos_init=pos_init,  # (N, 3), Noise
                     bond_index=batch.edge_index,
                     bond_type=batch.edge_type,
                     batch=batch.batch,
                     num_graphs=batch.num_graphs,
                     extend_order=False,  # Done in transforms.
-                    n_steps=args.n_steps,
+                    n_steps=args.n_steps,  # 5000 in config, denoise steps
                     step_lr=1e-6,
-                    w_global=args.w_global,
-                    global_start_sigma=args.global_start_sigma,
+                    w_global=args.w_global,  # TODO: what is this?
+                    global_start_sigma=args.global_start_sigma,  # TODO: what is this?
                     clip=args.clip,
                     clip_local=clip_local,
                     sampling_type=args.sampling_type,
                     eta=args.eta,
                 )
-                pos_gen = pos_gen.cpu()
+                pos_gen = pos_gen.cpu() # (N, 3)
                 if args.save_traj:
                     data.pos_gen = torch.stack(pos_gen_traj)
                 else:

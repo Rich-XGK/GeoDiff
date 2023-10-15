@@ -1,6 +1,21 @@
 {
     "configurations": [
         {
+            "name": "Python: QM9_Test",
+            "type": "python",
+            "request": "launch",
+            "module": "test",
+            "justMyCode": true,
+            "env": {
+                "CUDA_VISIBLE_DEVICES": "1"
+            },
+            "args": [
+                "./logs/qm9_default_2023_10_14__21_40_06/checkpoints/qm9_default.pt",
+                // "--start_idx=800",
+                // " --end_idx=1000"
+            ]
+        },
+        {
             "name": "Python: QM9_Train",
             "type": "python",
             "request": "launch",
