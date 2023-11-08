@@ -24,8 +24,18 @@ def num_confs(num: str):
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument("ckpt", type=str, help="path for loading the checkpoint")
-    parser.add_argument("--save_traj", action="store_true", default=False, help="whether store the whole trajectory for sampling")
+    parser.add_argument(
+        "ckpt",
+        type=str,
+        help="path for loading the checkpoint",
+        default="checkpoints/qm9_default.pt",
+    )
+    parser.add_argument(
+        "--save_traj",
+        action="store_true",
+        default=False,
+        help="whether store the whole trajectory for sampling",
+    )
     parser.add_argument("--resume", type=str, default=None)
     parser.add_argument("--tag", type=str, default="")
     parser.add_argument("--num_confs", type=num_confs, default=num_confs("2x"))
@@ -35,17 +45,41 @@ if __name__ == "__main__":
     parser.add_argument("--out_dir", type=str, default=None)
     parser.add_argument("--device", type=str, default="cuda")
     parser.add_argument("--clip", type=float, default=1000.0)
-    parser.add_argument("--n_steps", type=int, default=5000, help="sampling num steps; for DSM framework, this means num steps for each noise scale")
-    parser.add_argument("--global_start_sigma", type=float, default=0.5, help="enable global gradients only when noise is low")
-    parser.add_argument("--w_global", type=float, default=1.0, help="weight for global gradients")
+    parser.add_argument(
+        "--n_steps",
+        type=int,
+        default=5000,
+        help="sampling num steps; for DSM framework, this means num steps for each noise scale",
+    )
+    parser.add_argument(
+        "--global_start_sigma",
+        type=float,
+        default=0.5,
+        help="enable global gradients only when noise is low",
+    )
+    parser.add_argument(
+        "--w_global", type=float, default=1.0, help="weight for global gradients"
+    )
     # Parameters for DDPM
-    parser.add_argument("--sampling_type", type=str, default="ld", help="generalized, ddpm_noisy, ld: sampling method for DDIM, DDPM or Langevin Dynamics")
-    parser.add_argument("--eta", type=float, default=1.0, help="weight for DDIM and DDPM: 0->DDIM, 1->DDPM")
+    parser.add_argument(
+        "--sampling_type",
+        type=str,
+        default="ld",
+        help="generalized, ddpm_noisy, ld: sampling method for DDIM, DDPM or Langevin Dynamics",
+    )
+    parser.add_argument(
+        "--eta",
+        type=float,
+        default=1.0,
+        help="weight for DDIM and DDPM: 0->DDIM, 1->DDPM",
+    )
     args = parser.parse_args()
 
     # Load checkpoint
     ckpt = torch.load(args.ckpt)
-    config_path = glob(os.path.join(os.path.dirname(os.path.dirname(args.ckpt)), "*.yml"))[0]
+    config_path = glob(
+        os.path.join(os.path.dirname(os.path.dirname(args.ckpt)), "*.yml")
+    )[0]
     with open(config_path, "r") as f:
         config = EasyDict(yaml.safe_load(f))
     seed_all(config.train.seed)
@@ -61,7 +95,9 @@ if __name__ == "__main__":
     transforms = Compose(
         [
             CountNodesPerGraph(),
-            AddHigherOrderEdges(order=config.model.edge_order),  # Offline edge augmentation    # what does this for?
+            AddHigherOrderEdges(
+                order=config.model.edge_order
+            ),  # Offline edge augmentation    # what does this for?
         ]
     )
     if args.test_set is None:
@@ -98,7 +134,9 @@ if __name__ == "__main__":
 
         data_input = data.clone()
         data_input["pos_ref"] = None
-        batch = repeat_data(data_input, num_samples).to(args.device)  # Batch.from_data_list(datas), data is a list of Data objects.
+        batch = repeat_data(data_input, num_samples).to(
+            args.device
+        )  # Batch.from_data_list(datas), data is a list of Data objects.
 
         clip_local = None
         for _ in range(2):  # Maximum number of retry
@@ -121,7 +159,7 @@ if __name__ == "__main__":
                     sampling_type=args.sampling_type,
                     eta=args.eta,
                 )
-                pos_gen = pos_gen.cpu() # (N, 3)
+                pos_gen = pos_gen.cpu()  # (N, 3)
                 if args.save_traj:
                     data.pos_gen = torch.stack(pos_gen_traj)
                 else:

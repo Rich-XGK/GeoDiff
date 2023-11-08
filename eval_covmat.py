@@ -10,7 +10,7 @@ from utils.misc import *
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument("path", type=str)
+    parser.add_argument("--path", type=str, default="/home/Xgk/WorkSpace/ConFLCM/samples/AE/samples_all.pkl")
     parser.add_argument("--num_workers", type=int, default=8)
     parser.add_argument("--ratio", type=int, default=2)
     parser.add_argument("--start_idx", type=int, default=0)
@@ -23,8 +23,9 @@ if __name__ == "__main__":
 
     # Load results
     logger.info("Loading results: %s" % args.path)
-    with open(args.path, "rb") as f:
-        packed_dataset = pickle.load(f)
+    # with open(args.path, "rb") as f:
+    #     packed_dataset = pickle.load(f)
+    packed_dataset = torch.load(args.path)
     logger.info("Total: %d" % len(packed_dataset))
 
     # Evaluator

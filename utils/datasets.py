@@ -765,8 +765,7 @@ def get_test_set_with_large_num_conf(base_path, dataset_name, block, tot_mol_siz
 class ConformationDataset(Dataset):
     def __init__(self, path, transform=None):
         super().__init__()
-        with open(path, "rb") as f:
-            self.data = pickle.load(f)
+        self.data = torch.load(path)
         self.transform = transform
         self.atom_types = self._atom_types()
         self.edge_types = self._edge_types()

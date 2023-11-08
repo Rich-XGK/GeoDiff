@@ -1,6 +1,21 @@
 {
     "configurations": [
         {
+            "name": "Python: Test",
+            "type": "python",
+            "request": "launch",
+            "module": "test",
+            "justMyCode": true,
+            "env": {
+                "CUDA_VISIBLE_DEVICES": "0"
+            },
+            "args": [
+                "pretrained/checkpoints/qm9_default.pt",
+                "--start_idx=800",
+                "--end_idx=1000"
+            ]
+        },
+        {
             "name": "Python: Eval_CovMat",
             "type": "python",
             "request": "launch",
